@@ -34,12 +34,16 @@ async function PostHandler(req: NextApiRequest, res: NextApiResponse) {
 async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query as { id: string };
 
-  const game = await prisma.game.findFirst({
-    where: { id },
-  });
+  try {
+    const game = await prisma.game.findFirst({
+      where: { id },
+    });
 
-  if (game) {
-    return res.status(200).send(game);
+    if (game) {
+      return res.status(200).send(game);
+    }
+  } catch (e) {
+    return res.send(null);
   }
 }
 

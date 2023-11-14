@@ -1,10 +1,11 @@
 import GameBoard from "@/components/Game/GameBoard";
 import Button from "@/components/common/Button";
 import useGame from "@/hooks/useGame";
+import useSocket from "@/hooks/useSocket";
 import { ClipboardIcon } from "@heroicons/react/24/outline";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { twMerge } from "tailwind-merge";
 
 export default function GameSession() {
@@ -13,6 +14,22 @@ export default function GameSession() {
   const { game_code: gameId } = router.query as { game_code: string };
 
   const { data, mutate } = useGame(gameId);
+  const socket = useSocket();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("update-board", (boardString: string) => {
+      if (!boardString || !data) return;
+      mutate(
+        {
+          ...data,
+          board: boardString,
+        },
+        { revalidate: false }
+      );
+    });
+  }, [socket, mutate, data]);
 
   const handleMove = async (x: number, y: number) => {
     if (!data) return;
@@ -28,6 +45,7 @@ export default function GameSession() {
       },
       { revalidate: false }
     );
+    socket?.emit("player-move", boardString);
     await axios.post(`/api/move/?gameId=${gameId}&board=${boardString}`);
   };
 

@@ -1,6 +1,24 @@
 import { Server } from "Socket.IO";
+import type { Server as HTTPServer } from "http";
+import type { NextApiRequest, NextApiResponse } from "next";
+import type { Socket as NetSocket } from "net";
 
-export default function SocketHandler(_, res) {
+interface SocketServer extends HTTPServer {
+  io?: Server | undefined;
+}
+
+interface SocketWithIO extends NetSocket {
+  server: SocketServer;
+}
+
+interface NextApiResponseWithSocket extends NextApiResponse {
+  socket: SocketWithIO;
+}
+
+export default function SocketHandler(
+  _: NextApiRequest,
+  res: NextApiResponseWithSocket
+) {
   if (res.socket.server.io) {
     console.log("Socket is already running");
   } else {
@@ -9,9 +27,8 @@ export default function SocketHandler(_, res) {
     res.socket.server.io = io;
 
     io.on("connection", (socket) => {
-      socket.on("send-message", (msg) => {
-        console.log(msg);
-        socket.broadcast.emit("update-messages", msg);
+      socket.on("player-move", (boardString: string) => {
+        socket.broadcast.emit("update-board", boardString);
       });
     });
   }

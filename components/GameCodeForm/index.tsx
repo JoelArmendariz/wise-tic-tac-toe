@@ -25,6 +25,18 @@ export default function GameCodeForm() {
   };
 
   const handleConnectToExistingGame = async () => {
+    const existingGameData = await axios.get(
+      `/api/game/?id=${gameCodeInputValue}`
+    );
+    const existingGame = existingGameData.data;
+    if (!existingGame) {
+      console.log("no game with that id");
+      return;
+    }
+    if (existingGame.playerIDs.length > 1) {
+      console.log("too many players");
+      return;
+    }
     const playerData = await axios.post("/api/player", {
       name: playerNameInputValue,
     });
