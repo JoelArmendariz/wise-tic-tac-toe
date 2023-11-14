@@ -2,6 +2,7 @@ import { twMerge } from "tailwind-merge";
 
 interface GameTileProps {
   value: string;
+  onMove: (x: number, y: number) => void;
   x: number;
   y: number;
 }
@@ -21,9 +22,10 @@ const getCornerTileRadiusClasses = (x: number, y: number) => {
   }
 };
 
-export default function GameTile({ value, x, y }: GameTileProps) {
+export default function GameTile({ value, x, y, onMove }: GameTileProps) {
   return (
     <div
+      onClick={() => onMove(x, y)}
       className={twMerge(
         "relative flex h-full w-full justify-center items-center cursor-pointer hover:bg-primary-hover",
         "transition-all hover:scale-[105%] hover:z-10 duration-100 hover:rounded-lg border-primary-border border",
