@@ -1,7 +1,9 @@
-import { Server } from "Socket.IO";
-import type { Server as HTTPServer } from "http";
-import type { NextApiRequest, NextApiResponse } from "next";
-import type { Socket as NetSocket } from "net";
+import { Server } from 'Socket.IO';
+import axios from 'axios';
+import type { Server as HTTPServer } from 'http';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import type { Socket as NetSocket } from 'net';
+import { Player } from '@prisma/client';
 
 interface SocketServer extends HTTPServer {
   io?: Server | undefined;
@@ -15,20 +17,23 @@ interface NextApiResponseWithSocket extends NextApiResponse {
   socket: SocketWithIO;
 }
 
-export default function SocketHandler(
-  _: NextApiRequest,
-  res: NextApiResponseWithSocket
-) {
+export default function SocketHandler(_: NextApiRequest, res: NextApiResponseWithSocket) {
   if (res.socket.server.io) {
-    console.log("Socket is already running");
+    console.log('Socket is already running');
   } else {
-    console.log("Socket is initializing");
+    console.log('Socket is initializing');
     const io = new Server(res.socket.server);
     res.socket.server.io = io;
 
-    io.on("connection", (socket) => {
-      socket.on("player-move", (boardString: string) => {
-        socket.broadcast.emit("update-board", boardString);
+    io.on('connection', socket => {
+      socket.on('player-move', (boardString: string) => {
+        socket.broadcast.emit('update-board', boardString);
+      });
+      socket.on('player-enter', (playerId: string) => {
+        socket.broadcast.emit('update-players', playerId);
+      });
+      socket.on('player-wins', (player: Player) => {
+        socket.broadcast.emit('update-winner', player);
       });
     });
   }

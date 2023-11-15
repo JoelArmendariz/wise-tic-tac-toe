@@ -20,6 +20,7 @@ model Game {
   playerIDs       String[]   @db.ObjectId
   players         Player[]   @relation("players", fields: [playerIDs], references: [id])
   status          String     @default("active")
+  winnerID        String?    @db.ObjectId @unique
 }
 
 model Player {

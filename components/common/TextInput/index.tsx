@@ -1,17 +1,23 @@
-import { InputHTMLAttributes } from "react";
-import { twMerge } from "tailwind-merge";
+import { InputHTMLAttributes } from 'react';
+import { twMerge } from 'tailwind-merge';
 
-// interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {}
+interface TextInputProps extends InputHTMLAttributes<HTMLInputElement> {
+  errorText?: string;
+}
 
 export default function TextInput({
   className,
+  errorText,
   ...props
-}: InputHTMLAttributes<HTMLInputElement>) {
+}: TextInputProps) {
   return (
-    <input
-      className={twMerge("px-4 py-2 rounded-lg text-black", className)}
-      {...props}
-      type="text"
-    />
+    <div className="flex flex-col">
+      <input
+        className={twMerge('px-4 py-2 rounded-lg text-black', className)}
+        {...props}
+        type="text"
+      />
+      {errorText ? <span className="text-error">{errorText}</span> : null}
+    </div>
   );
 }

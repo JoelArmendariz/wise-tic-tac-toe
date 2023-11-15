@@ -1,86 +1,38 @@
-import axios from "axios";
-import Button from "@/components/common/Button";
-import TextInput from "@/components/common/TextInput";
-import { useState } from "react";
-import { useRouter } from "next/router";
+import axios from 'axios';
+import { useRouter } from 'next/router';
+import CreateNewGameForm from '@/components/GameCodeForm/CreateNewGameForm';
+import JoinGameForm from '@/components/GameCodeForm/JoinGameForm';
 
 export default function GameCodeForm() {
   const router = useRouter();
 
-  const [newGamePlayerNameInputValue, setNewGamePlayerNameInputValue] =
-    useState("");
-  const [playerNameInputValue, setPlayerNameInputValue] = useState("");
-  const [gameCodeInputValue, setGameCodeInputValue] = useState("");
-
-  const handleCreateNewGame = async () => {
-    const playerData = await axios.post("/api/player", {
-      name: newGamePlayerNameInputValue,
+  const handleCreateNewGame = async (playerName: string) => {
+    const { data: player } = await axios.post('/api/player', {
+      name: playerName,
     });
-    const player = playerData.data;
-
-    const gameData = await axios.post("/api/game", player);
-    const game = gameData.data;
+    localStorage.setItem('playerId', player.id);
+    const { data: game } = await axios.post('/api/game', player);
 
     router.push(`/${game.id}`);
   };
 
-  const handleConnectToExistingGame = async () => {
-    const existingGameData = await axios.get(
-      `/api/game/?id=${gameCodeInputValue}`
-    );
-    const existingGame = existingGameData.data;
-    if (!existingGame) {
-      console.log("no game with that id");
-      return;
-    }
-    if (existingGame.playerIDs.length > 1) {
-      console.log("too many players");
-      return;
-    }
-    const playerData = await axios.post("/api/player", {
-      name: playerNameInputValue,
+  const handleJoinGame = async (gameCode: string, playerName: string) => {
+    const { data: player } = await axios.post('/api/player', {
+      name: playerName,
     });
-    const player = playerData.data;
-    await axios.put("/api/game", { player, gameId: gameCodeInputValue });
+    localStorage.setItem('playerId', player.id);
+    await axios.put('/api/game', { player, gameId: gameCode });
 
-    router.push(`/${gameCodeInputValue}`);
+    router.push(`/${gameCode}`);
   };
 
   return (
-    <div>
-      <div className="flex flex-col mt-72 mb-4">
-        <span>Create a new game</span>
-        <div className="space-x-2 mt-2">
-          <TextInput
-            onChange={(event) =>
-              setNewGamePlayerNameInputValue(event.target.value)
-            }
-            placeholder="Enter your player name"
-          />
-          <Button onClick={handleCreateNewGame}>Create New Game</Button>
-        </div>
-      </div>
+    <div className="mt-72 ">
+      <CreateNewGameForm onCreateNewGame={handleCreateNewGame} />
       <div className="flex justify-center items-center rounded-full border border-secondary w-8 h-8 p-5">
         or
       </div>
-      <div className="flex flex-col mt-4">
-        <span>Connect to existing game</span>
-        <div className="flex flex-row space-x-2 mb-4 mt-2">
-          <div className="flex flex-col space-y-2">
-            <TextInput
-              onChange={(event) => setGameCodeInputValue(event.target.value)}
-              placeholder="Enter game code"
-            />
-            <TextInput
-              onChange={(event) => setPlayerNameInputValue(event.target.value)}
-              placeholder="Enter your player name"
-            />
-          </div>
-          <div className="flex items-end">
-            <Button onClick={handleConnectToExistingGame}>Join Game</Button>
-          </div>
-        </div>
-      </div>
+      <JoinGameForm onJoinGame={handleJoinGame} />
     </div>
   );
 }

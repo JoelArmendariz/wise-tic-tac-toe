@@ -7,30 +7,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 }
 
 async function PostHandler(req: NextApiRequest, res: NextApiResponse) {
-  const { gameId, board } = req.body as {
-    gameId: string;
-    board: string;
-  };
+  const { winnerID, gameId } = req.body as { winnerID: string; gameId: string };
 
   const game = await prisma.game.findFirst({
-    where: {
-      id: gameId,
-    },
+    where: { id: gameId },
   });
 
-  if (game) {
-    const nextPlayerId = game.playerIDs.find(playerId => playerId !== game.currentPlayerID);
-    const updatedGame = await prisma.game.update({
-      where: {
-        id: gameId,
-      },
-      data: {
-        board,
-        currentPlayerID: nextPlayerId,
-      },
-    });
-    return res.send(updatedGame);
-  }
+  const winner = await prisma.player.findUnique({
+    where: { id: winnerID },
+  });
 
-  return res.status(200).send(game);
+  if (game && winner) {
+    const updatedGame = await prisma.game.update({
+      where: { id: gameId },
+      data: { winnerID, status: 'finished' },
+    });
+
+    await prisma.player.update({
+      where: { id: winnerID },
+      data: { wins: winner.wins + 1 },
+    });
+
+    return res.status(200).send(updatedGame);
+  }
 }

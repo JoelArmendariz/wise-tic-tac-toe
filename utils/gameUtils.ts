@@ -1,10 +1,15 @@
-export const getGameTileBorderClasses = (x: number, y: number): string => {
-  let borderClasses = "border-primary-border";
-  if (x === 0 || x === 1) {
-    borderClasses += " border-b";
+export const checkForWinner = (board: string[][]): boolean => {
+  if (
+    (board[0][0] !== '-' && board[0][0] === board[0][1] && board[0][1] === board[0][2]) ||
+    (board[1][0] !== '-' && board[1][0] === board[1][1] && board[0][1] === board[1][2]) ||
+    (board[2][0] !== '-' && board[2][0] === board[2][1] && board[2][1] === board[2][2]) ||
+    (board[0][0] !== '-' && board[0][0] === board[1][0] && board[1][0] === board[2][0]) ||
+    (board[0][1] !== '-' && board[0][1] === board[1][1] && board[1][1] === board[2][1]) ||
+    (board[0][2] !== '-' && board[0][2] === board[1][2] && board[1][2] === board[2][2]) ||
+    (board[0][0] !== '-' && board[0][0] === board[1][1] && board[1][1] === board[2][2]) ||
+    (board[2][0] !== '-' && board[2][0] === board[1][1] && board[1][1] === board[0][2])
+  ) {
+    return true;
   }
-  if (y === 0 || y === 1) {
-    borderClasses += " border-r";
-  }
-  return borderClasses;
+  return false;
 };
