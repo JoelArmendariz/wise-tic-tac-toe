@@ -27,7 +27,7 @@ export default function GameCodeForm() {
   };
 
   return (
-    <div className="mt-72 ">
+    <div className="mt-72 px-4">
       <CreateNewGameForm onCreateNewGame={handleCreateNewGame} />
       <div className="flex justify-center items-center rounded-full border border-secondary w-8 h-8 p-5">
         or

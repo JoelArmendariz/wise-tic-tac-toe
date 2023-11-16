@@ -32,7 +32,9 @@ export default function CreateNewGameForm({ onCreateNewGame }: CreateNewGameForm
           placeholder="Enter your player name"
           errorText={inputError}
         />
-        <Button onClick={handleCreateNewGame}>Create New Game</Button>
+        <Button className="h-10" onClick={handleCreateNewGame}>
+          New Game
+        </Button>
       </div>
     </div>
   );

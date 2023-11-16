@@ -74,14 +74,16 @@ export default function JoinGameForm({ onJoinGame }: JoinGameFormProps) {
             placeholder="Enter game code"
             errorText={errors.gameCode}
           />
-          <TextInput
-            onChange={handlePlayerNameChange}
-            placeholder="Enter your player name"
-            errorText={errors.playerName}
-          />
-        </div>
-        <div className="flex items-end">
-          <Button onClick={handleJoinGame}>Join Game</Button>
+          <div className="flex flex-row space-x-2">
+            <TextInput
+              onChange={handlePlayerNameChange}
+              placeholder="Enter your player name"
+              errorText={errors.playerName}
+            />
+            <Button className="h-10" onClick={handleJoinGame}>
+              Join Game
+            </Button>
+          </div>
         </div>
       </div>
     </div>

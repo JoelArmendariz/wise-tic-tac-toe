@@ -1,5 +1,4 @@
 import { Server } from 'Socket.IO';
-import axios from 'axios';
 import type { Server as HTTPServer } from 'http';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type { Socket as NetSocket } from 'net';
@@ -26,11 +25,11 @@ export default function SocketHandler(_: NextApiRequest, res: NextApiResponseWit
     res.socket.server.io = io;
 
     io.on('connection', socket => {
+      socket.on('player-enter', (playerId: string) => {
+        socket.broadcast.emit('new-player', playerId);
+      });
       socket.on('player-move', (boardString: string) => {
         socket.broadcast.emit('update-board', boardString);
-      });
-      socket.on('player-enter', (playerId: string) => {
-        socket.broadcast.emit('update-players', playerId);
       });
       socket.on('player-wins', (player: Player) => {
         socket.broadcast.emit('update-winner', player);

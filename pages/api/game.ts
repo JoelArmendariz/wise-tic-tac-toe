@@ -34,6 +34,11 @@ async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
   try {
     const game = await prisma.game.findFirst({
       where: { id },
+      include: {
+        owner: true,
+        currentPlayer: true,
+        players: true,
+      },
     });
 
     if (game) {
