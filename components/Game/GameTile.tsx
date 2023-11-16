@@ -23,7 +23,8 @@ const getCornerTileRadiusClasses = (x: number, y: number) => {
   }
 };
 
-export default function GameTile({ value, x, y, onMove, disabled }: GameTileProps) {
+export default function GameTile({ value, x, y, onMove, disabled: disabledProp }: GameTileProps) {
+  const disabled = disabledProp || value !== '-';
   return (
     <div
       onClick={() => !disabled && onMove(x, y)}
