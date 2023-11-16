@@ -1,3 +1,7 @@
+/**
+ * Checks a board matrix for a winner
+ * @params board
+ */
 export const checkForWinner = (board: string[][]): boolean => {
   if (
     (board[0][0] !== '-' && board[0][0] === board[0][1] && board[0][1] === board[0][2]) ||
