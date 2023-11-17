@@ -1,6 +1,8 @@
 import { Player } from '@prisma/client';
 import { fetchGet, fetchPost } from './common';
 
+export const getAllPlayers = (): Promise<Player[]> => fetchGet('/api/player');
+
 export const getPlayerById = (playerId: string): Promise<Player> =>
   fetchGet(`/api/player/?id=${playerId}`);
 
