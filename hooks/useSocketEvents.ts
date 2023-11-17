@@ -9,6 +9,7 @@ export default function useSocketEvents(events?: SocketEvents) {
   useEffect(() => {
     if (!socket || !events) return;
     for (const event in events) {
+      socket.removeListener(event);
       socket.on(event, events[event]);
     }
   }, [events, socket]);

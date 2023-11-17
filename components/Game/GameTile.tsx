@@ -1,3 +1,4 @@
+import { getWinningGameRow } from '@/utils/gameUtils';
 import { twMerge } from 'tailwind-merge';
 
 interface GameTileProps {
@@ -6,6 +7,7 @@ interface GameTileProps {
   x: number;
   y: number;
   disabled?: boolean;
+  board: string[][];
 }
 
 const getCornerTileRadiusClasses = (x: number, y: number) => {
@@ -23,8 +25,18 @@ const getCornerTileRadiusClasses = (x: number, y: number) => {
   }
 };
 
-export default function GameTile({ value, x, y, onMove, disabled: disabledProp }: GameTileProps) {
+export default function GameTile({
+  value,
+  x,
+  y,
+  onMove,
+  disabled: disabledProp,
+  board,
+}: GameTileProps) {
   const disabled = disabledProp || value !== '-';
+  const isWinningTile = getWinningGameRow(board)?.find(
+    coordinates => coordinates[0] === x && coordinates[1] === y
+  );
   return (
     <div
       onClick={() => !disabled && onMove(x, y)}
@@ -32,6 +44,7 @@ export default function GameTile({ value, x, y, onMove, disabled: disabledProp }
         'relative flex h-full w-full justify-center items-center',
         'transition-all duration-100 border-primary-border border',
         getCornerTileRadiusClasses(x, y),
+        isWinningTile ? 'bg-error' : '',
         disabled
           ? 'cursor-not-allowed'
           : 'hover:scale-[105%] hover:z-10 hover:bg-primary-hover cursor-pointer hover:rounded-lg'

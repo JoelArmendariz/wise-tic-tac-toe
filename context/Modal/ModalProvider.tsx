@@ -5,13 +5,9 @@ import React, {
   useState,
   FunctionComponent,
   useEffect,
-} from "react";
-import {
-  InjectCommonModalProps,
-  ModalDisplay,
-  Modals,
-} from "../../constants/modals";
-import { ModalContext } from "./ModalContext";
+} from 'react';
+import { InjectCommonModalProps, ModalDisplay, Modals } from '../../constants/modals';
+import { ModalContext } from './ModalContext';
 
 interface ModalProviderProps {
   children: JSX.Element;
@@ -26,32 +22,29 @@ export default function ModalProvider({ children }: ModalProviderProps) {
     props: {},
   });
 
-  const showModal = useCallback(
-    (modalId: Modals, props?: Record<string, unknown>) => {
-      setModal({
-        id: modalId,
-        props: props || {},
-      });
-      // Prevent page scrolling when a modal is opened
-      document.body.style.overflow = "hidden";
-    },
-    []
-  );
+  const showModal = useCallback((modalId: Modals, props?: Record<string, unknown>) => {
+    setModal({
+      id: modalId,
+      props: props || {},
+    });
+    // Prevent page scrolling when a modal is opened
+    document.body.style.overflow = 'hidden';
+  }, []);
 
   const hideModal = useCallback(() => {
     setModal({ id: null, props: {} });
     // Allow page scrolling again once the modal closes
-    document.body.style.overflow = "unset";
+    document.body.style.overflow = 'unset';
   }, []);
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
+      if (event.key === 'Escape') {
         hideModal();
       }
     };
-    document.addEventListener("keydown", handleKeydown);
-    return () => document.removeEventListener("keydown", handleKeydown);
+    document.addEventListener('keydown', handleKeydown);
+    return () => document.removeEventListener('keydown', handleKeydown);
   }, [hideModal]);
 
   const value = useMemo(
@@ -77,15 +70,10 @@ export default function ModalProvider({ children }: ModalProviderProps) {
     // Creates a dark overlay, handles z indexing, and centers the ModalContent in the screen
     return (
       <>
-        <div
-          style={{
-            width: "100vw",
-            height: "100vh",
-          }}
-          className="absolute flex flex-row z-50 items-center justify-center bg-transparent"
-        >
+        <div className="absolute h-screen w-screen flex flex-row z-50 items-center justify-center bg-transparent">
           <Modal {...modalProps} />
         </div>
+        <div className="fixed inset-0 z-40 bg-black opacity-25" />
       </>
     );
   };

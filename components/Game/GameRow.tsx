@@ -5,9 +5,10 @@ interface GameRowProps {
   x: number;
   onMove: (x: number, y: number) => void;
   disabled?: boolean;
+  board: string[][];
 }
 
-export default function GameRow({ row, x, onMove, disabled }: GameRowProps) {
+export default function GameRow({ row, x, onMove, disabled, board }: GameRowProps) {
   return (
     <div className="grid grid-cols-3">
       {row.map((tileValue, i) => (
@@ -16,6 +17,7 @@ export default function GameRow({ row, x, onMove, disabled }: GameRowProps) {
           onMove={onMove}
           value={tileValue}
           disabled={disabled}
+          board={board}
           x={x}
           y={i}
         />

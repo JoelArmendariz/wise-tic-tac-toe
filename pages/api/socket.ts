@@ -25,8 +25,8 @@ export default function SocketHandler(_: NextApiRequest, res: NextApiResponseWit
     res.socket.server.io = io;
 
     io.on('connection', socket => {
-      socket.on('player-enter', (playerId: string) => {
-        socket.broadcast.emit('new-player', playerId);
+      socket.on('player-enter', ({ gameId, playerId }) => {
+        socket.broadcast.emit('new-player', { gameId, playerId });
       });
       socket.on('player-move', (boardString: string) => {
         socket.broadcast.emit('update-board', boardString);

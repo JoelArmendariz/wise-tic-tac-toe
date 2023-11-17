@@ -4,7 +4,7 @@ import Header from '@/components/common/Header';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import useGame from '@/hooks/useGame';
 import useSocketEvents from '@/hooks/useSocketEvents';
-import { checkForWinner } from '@/utils/gameUtils';
+import { getWinningGameRow } from '@/utils/gameUtils';
 import { ClipboardIcon } from '@heroicons/react/24/outline';
 import { Player } from '@prisma/client';
 import axios from 'axios';
@@ -24,11 +24,11 @@ export default function GameSession() {
   const { data: game, isLoading: isGameLoading, mutate } = useGame(gameId);
 
   const socket = useSocketEvents({
-    'new-player': (newPlayerId: string) => {
-      if (!game) return;
+    'new-player': ({ gameId: newGameId, playerId }) => {
+      if (!game || newGameId !== gameId) return;
       mutate({
         ...game,
-        playerIDs: [...game.playerIDs, newPlayerId],
+        playerIDs: [...game.playerIDs, playerId],
       });
     },
     'update-winner': (winner: Player) => {
@@ -50,13 +50,14 @@ export default function GameSession() {
   // Send player-enter event when user mounts the game
   useEffect(() => {
     if (!socket) return;
-    socket.emit('player-enter', localStorage.getItem('playerId'));
-  }, [socket]);
+    socket.emit('player-enter', { gameId, playerId: localStorage.getItem('playerId') });
+  }, [socket, gameId]);
 
   useEffect(() => {
     const playerId = localStorage.getItem('playerId');
     setIsCurrentPlayer(game?.currentPlayerID === playerId);
     setIsOwner(game?.ownerID === playerId);
+    // If the game already has a winner, we need to load the player from the server
     if (game?.winnerID) {
       setIsLoading(true);
       axios.get(`/api/player/?id=${game.winnerID}`).then(winnerData => {
@@ -69,7 +70,7 @@ export default function GameSession() {
   }, [game?.currentPlayerID, game?.ownerID, game?.winnerID]);
 
   const getWinner = (board: string[][]) => {
-    const hasWinner = checkForWinner(board);
+    const hasWinner = getWinningGameRow(board);
 
     if (hasWinner) {
       const playerId = localStorage.getItem('playerId');
@@ -115,6 +116,18 @@ export default function GameSession() {
     setCodeCopied(true);
   };
 
+  const handlePlayAgain = async () => {
+    // Create new game and route to it
+    const playerId = localStorage.getItem('playerId');
+    const { data: newGame } = await axios.post(
+      '/api/game',
+      game?.players.find(player => player.id === playerId)
+    );
+    setWinner('');
+    mutate(newGame);
+    router.push(`/${newGame.id}`);
+  };
+
   const getGameStatus = () => {
     if (winner) {
       return `${winner} wins!!`;
@@ -123,8 +136,10 @@ export default function GameSession() {
       return "It's your turn";
     }
     // isCurrentPlayer is possibly undefined, so we should be explicit here
-    if (isCurrentPlayer === false || game?.playerIDs.length === 1) {
-      return 'Waiting for opponent';
+    if (isCurrentPlayer === false || game?.playerIDs?.length === 1) {
+      return `Waiting for opponent${
+        game?.playerIDs?.length === 1 ? ' - share the game code!' : ''
+      }`;
     }
     return '';
   };
@@ -143,9 +158,16 @@ export default function GameSession() {
             onMove={handleMove}
             disabled={gameDisabled}
           />
-          <Button className="mt-2" variant="secondary" onClick={handleLeaveGame}>
-            Exit game
-          </Button>
+          <div className="flex flex-row space-x-2 w-full">
+            <Button className="mt-2 w-full" variant="secondary" onClick={handleLeaveGame}>
+              Exit game
+            </Button>
+            {!!winner && localStorage.getItem('playerId') === game?.ownerID ? (
+              <Button className="mt-2 w-full" onClick={handlePlayAgain}>
+                Create another game
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
       <Button
