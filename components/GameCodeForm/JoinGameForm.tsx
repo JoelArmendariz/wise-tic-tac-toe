@@ -1,6 +1,6 @@
 import Button from '@/components/common/Button';
 import TextInput from '@/components/common/TextInput';
-import axios from 'axios';
+import { getGameById } from '@/services/game';
 import { ChangeEvent, useState } from 'react';
 
 interface JoinGameFormProps {
@@ -34,13 +34,18 @@ export default function JoinGameForm({ onJoinGame }: JoinGameFormProps) {
       }
       return false;
     }
-    const { data: existingGame } = await axios.get(`/api/game/?id=${gameCode}`);
+    const existingGame = await getGameById(gameCode);
     if (!existingGame) {
       setError('gameCode', 'There is no game with that code');
       return false;
     }
     if (existingGame.playerIDs.length > 1) {
       setError('gameCode', 'This game already has 2 players');
+      return false;
+    }
+    const playerAlreadyConnected = existingGame.players.find(({ name }) => name === playerName);
+    if (playerAlreadyConnected) {
+      setError('playerName', `${playerName} already joined`);
       return false;
     }
     return true;

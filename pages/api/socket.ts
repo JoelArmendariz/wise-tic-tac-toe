@@ -34,6 +34,9 @@ export default function SocketHandler(_: NextApiRequest, res: NextApiResponseWit
       socket.on('player-wins', (player: Player) => {
         socket.broadcast.emit('update-winner', player);
       });
+      socket.on('tie-game', () => {
+        socket.broadcast.emit('update-tie');
+      });
     });
   }
   res.end();

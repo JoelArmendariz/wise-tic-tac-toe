@@ -19,18 +19,26 @@ model Game {
   currentPlayer   Player     @relation("currentPlayer", fields: [currentPlayerID], references: [id])
   playerIDs       String[]   @db.ObjectId
   players         Player[]   @relation("players", fields: [playerIDs], references: [id])
-  status          String     @default("active")
+  status          GameStatus @default(ACTIVE)
   winnerID        String?    @db.ObjectId @unique
+  winner          Player?    @relation("winner", fields: [winnerID], references: [id])
 }
 
 model Player {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
   name            String
-  wins            Int      @default(0)
-  ownedGames      Game[]   @relation("owner")
-  ownedGameIDs    String[] @db.ObjectId
-  currentGameID   String?  @db.ObjectId
-  currentGame     Game?    @relation("currentPlayer")
-  gameIDs         String[] @db.ObjectId
-  games           Game[]   @relation("players", fields: [gameIDs], references: [id])
+  ownedGames      Game[]     @relation("owner")
+  ownedGameIDs    String[]   @db.ObjectId
+  currentGameID   String?    @db.ObjectId
+  currentGame     Game?      @relation("currentPlayer")
+  gameIDs         String[]   @db.ObjectId
+  games           Game[]     @relation("players", fields: [gameIDs], references: [id])
+  wins            Game[]     @relation("winner")
+  winCount        Int        @default(0)
+}
+
+enum GameStatus {
+  ACTIVE
+  FINISHED
+  INDETERMINATE
 }

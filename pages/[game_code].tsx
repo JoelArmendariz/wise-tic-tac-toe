@@ -4,10 +4,10 @@ import Header from '@/components/common/Header';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import useGame from '@/hooks/useGame';
 import useSocketEvents from '@/hooks/useSocketEvents';
-import { getWinningGameRow } from '@/utils/gameUtils';
+import { createGameByPlayer, setGameOver, updateGameBoard } from '@/services/game';
+import { getWinningOrTieRows } from '@/utils/gameUtils';
 import { ClipboardIcon } from '@heroicons/react/24/outline';
-import { Player } from '@prisma/client';
-import axios from 'axios';
+import { GameStatus, Player } from '@prisma/client';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import { twMerge } from 'tailwind-merge';
@@ -16,10 +16,10 @@ export default function GameSession() {
   const router = useRouter();
   const { game_code: gameId } = router.query as { game_code: string };
   const [codeCopied, setCodeCopied] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const [isCurrentPlayer, setIsCurrentPlayer] = useState<boolean>();
   const [isOwner, setIsOwner] = useState<boolean>();
   const [winner, setWinner] = useState('');
+  const [isTie, setIsTie] = useState(false);
 
   const { data: game, isLoading: isGameLoading, mutate } = useGame(gameId);
 
@@ -34,6 +34,9 @@ export default function GameSession() {
     'update-winner': (winner: Player) => {
       setWinner(winner.name);
     },
+    'update-tie': () => {
+      setIsTie(true);
+    },
     'update-board': (updatedBoardString: string) => {
       if (!updatedBoardString || !game) return;
       setIsCurrentPlayer(true);
@@ -47,34 +50,44 @@ export default function GameSession() {
     },
   });
 
+  // Setup the game values
+  useEffect(() => {
+    const playerId = localStorage.getItem('playerId');
+    setIsCurrentPlayer(game?.currentPlayerID === playerId);
+    setIsOwner(game?.ownerID === playerId);
+    if (game?.winner) {
+      setWinner(game.winner.name);
+    } else if (game?.status === GameStatus.INDETERMINATE) {
+      setIsTie(true);
+    }
+  }, [game?.currentPlayerID, game?.ownerID, game?.status, game?.winner]);
+
   // Send player-enter event when user mounts the game
   useEffect(() => {
     if (!socket) return;
     socket.emit('player-enter', { gameId, playerId: localStorage.getItem('playerId') });
   }, [socket, gameId]);
 
-  useEffect(() => {
-    const playerId = localStorage.getItem('playerId');
-    setIsCurrentPlayer(game?.currentPlayerID === playerId);
-    setIsOwner(game?.ownerID === playerId);
-    // If the game already has a winner, we need to load the player from the server
-    if (game?.winnerID) {
-      setIsLoading(true);
-      axios.get(`/api/player/?id=${game.winnerID}`).then(winnerData => {
-        setWinner(winnerData.data.name);
-        setIsLoading(false);
-      });
-    } else {
-      setIsLoading(false);
-    }
-  }, [game?.currentPlayerID, game?.ownerID, game?.winnerID]);
+  const checkGameResult = (board: string[][]) => {
+    const resultRows = getWinningOrTieRows(board);
+    // Game is not over
+    if (!resultRows) return;
 
-  const getWinner = (board: string[][]) => {
-    const hasWinner = getWinningGameRow(board);
-
-    if (hasWinner) {
+    // There is a winner
+    if (resultRows.length === 3) {
       const playerId = localStorage.getItem('playerId');
-      return game?.players.find(({ id }) => id === playerId);
+      const newWinner = game?.players.find(({ id }) => id === playerId);
+      if (newWinner) {
+        socket?.emit('player-wins', newWinner);
+        setWinner(newWinner.name);
+        setGameOver(gameId, newWinner.id);
+      }
+    }
+    // There is a tie
+    if (resultRows.length > 3) {
+      socket?.emit('tie-game');
+      setIsTie(true);
+      setGameOver(gameId);
     }
   };
 
@@ -96,15 +109,10 @@ export default function GameSession() {
       },
       { revalidate: false }
     );
-    const newWinner = getWinner(board);
-    if (newWinner) {
-      socket?.emit('player-wins', newWinner);
-      setWinner(newWinner.name);
-      axios.post('/api/gameover', { gameId, winnerID: newWinner.id });
-    }
+    checkGameResult(board);
     setIsCurrentPlayer(false);
     // Finally persist the board change to the DB
-    axios.post('/api/move/', { gameId, board: updatedBoardString });
+    updateGameBoard(gameId, updatedBoardString);
   };
 
   const handleLeaveGame = () => {
@@ -119,18 +127,23 @@ export default function GameSession() {
   const handlePlayAgain = async () => {
     // Create new game and route to it
     const playerId = localStorage.getItem('playerId');
-    const { data: newGame } = await axios.post(
-      '/api/game',
-      game?.players.find(player => player.id === playerId)
-    );
-    setWinner('');
-    mutate(newGame);
-    router.push(`/${newGame.id}`);
+    const player = game?.players.find(player => player.id === playerId);
+    if (player) {
+      const newGame = await createGameByPlayer(player);
+      setWinner('');
+      setIsTie(false);
+      setCodeCopied(false);
+      mutate(newGame);
+      router.push(`/${newGame.id}`);
+    }
   };
 
   const getGameStatus = () => {
     if (winner) {
-      return `${winner} wins!!`;
+      return `Game over - ${winner} wins!!`;
+    }
+    if (isTie) {
+      return "Game over - It's a tie!";
     }
     if (isCurrentPlayer && game?.playerIDs.length && game?.playerIDs.length > 1) {
       return "It's your turn";
@@ -147,7 +160,7 @@ export default function GameSession() {
   const gameDisabled =
     !isCurrentPlayer || (game?.playerIDs && game?.playerIDs.length === 1) || !!winner;
 
-  return !isGameLoading && !isLoading ? (
+  return !isGameLoading ? (
     <>
       <Header />
       <div className="flex justify-center mt-48 w-full h-full">
@@ -162,7 +175,7 @@ export default function GameSession() {
             <Button className="mt-2 w-full" variant="secondary" onClick={handleLeaveGame}>
               Exit game
             </Button>
-            {!!winner && localStorage.getItem('playerId') === game?.ownerID ? (
+            {(!!winner && isOwner) || (isTie && isOwner) ? (
               <Button className="mt-2 w-full" onClick={handlePlayAgain}>
                 Create another game
               </Button>

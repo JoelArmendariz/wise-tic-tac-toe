@@ -1,27 +1,23 @@
-import axios from 'axios';
 import { useRouter } from 'next/router';
 import CreateNewGameForm from '@/components/GameCodeForm/CreateNewGameForm';
 import JoinGameForm from '@/components/GameCodeForm/JoinGameForm';
+import { getOrCreatePlayerByName } from '@/services/player';
+import { addPlayerToGame, createGameByPlayer } from '@/services/game';
 
 export default function GameCodeForm() {
   const router = useRouter();
 
   const handleCreateNewGame = async (playerName: string) => {
-    const { data: player } = await axios.post('/api/player', {
-      name: playerName,
-    });
+    const player = await getOrCreatePlayerByName(playerName);
     localStorage.setItem('playerId', player.id);
-    const { data: game } = await axios.post('/api/game', player);
-
+    const game = await createGameByPlayer(player);
     router.push(`/${game.id}`);
   };
 
   const handleJoinGame = async (gameCode: string, playerName: string) => {
-    const { data: player } = await axios.post('/api/player', {
-      name: playerName,
-    });
+    const player = await getOrCreatePlayerByName(playerName);
     localStorage.setItem('playerId', player.id);
-    await axios.put('/api/game', { player, gameId: gameCode });
+    await addPlayerToGame(gameCode, player);
 
     router.push(`/${gameCode}`);
   };

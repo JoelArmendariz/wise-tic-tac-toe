@@ -23,6 +23,12 @@ async function PostHandler(req: NextApiRequest, res: NextApiResponse) {
       ownerID: player.id,
       currentPlayerID: player.id,
     },
+    include: {
+      owner: true,
+      currentPlayer: true,
+      players: true,
+      winner: true,
+    },
   });
 
   return res.status(200).send(game);

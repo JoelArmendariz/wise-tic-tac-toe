@@ -1,4 +1,4 @@
-import { getWinningGameRow } from '@/utils/gameUtils';
+import { getWinningOrTieRows } from '@/utils/gameUtils';
 import { twMerge } from 'tailwind-merge';
 
 interface GameTileProps {
@@ -34,7 +34,7 @@ export default function GameTile({
   board,
 }: GameTileProps) {
   const disabled = disabledProp || value !== '-';
-  const isWinningTile = getWinningGameRow(board)?.find(
+  const isWinningTile = getWinningOrTieRows(board)?.find(
     coordinates => coordinates[0] === x && coordinates[1] === y
   );
   return (

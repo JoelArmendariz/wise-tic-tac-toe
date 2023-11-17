@@ -9,7 +9,7 @@ export default function LeaderboardModal({ handleClose }: CommonModalProps) {
 
   // Sort players by win count high to low
   const getSortedPlayersByWinCount = () =>
-    players ? [...players].sort((playerA, playerB) => playerB.wins - playerA.wins) : [];
+    players ? [...players].sort((playerA, playerB) => playerB.winCount - playerA.winCount) : [];
 
   return (
     <div className="relative text-black h-1/2 min-h-[35rem] w-5/6 rounded-lg bg-white p-4 shadow-lg sm:h-1/2 sm:w-2/3 md:h-1/2 md:w-2/3 lg:h-1/2 lg:w-2/3 xl:h-1/2 xl:w-1/2 2xl:h-1/2 2xl:w-1/3">

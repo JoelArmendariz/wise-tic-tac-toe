@@ -10,7 +10,7 @@ export default function LeaderboardEntry({ player, position }: LeaderboardEntryP
     <div className="flex flex-row w-1/2 justify-between py-2 px-4 bg-primary rounded-lg">
       <span>{position}</span>
       <span>{player.name}</span>
-      <span>{player.wins}</span>
+      <span>{player.winCount}</span>
     </div>
   );
 }
