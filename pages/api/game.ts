@@ -12,26 +12,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function PostHandler(req: NextApiRequest, res: NextApiResponse) {
   const player: Player = req.body;
 
-  const game = await prisma.game.create({
-    data: {
-      board: JSON.stringify([
-        ['-', '-', '-'],
-        ['-', '-', '-'],
-        ['-', '-', '-'],
-      ]),
-      playerIDs: [player.id],
-      ownerID: player.id,
-      currentPlayerID: player.id,
-    },
-    include: {
-      owner: true,
-      currentPlayer: true,
-      players: true,
-      winner: true,
-    },
-  });
-
-  return res.status(200).send(game);
+  try {
+    const game = await prisma.game.create({
+      data: {
+        board: JSON.stringify([
+          ['-', '-', '-'],
+          ['-', '-', '-'],
+          ['-', '-', '-'],
+        ]),
+        playerIDs: [player.id],
+        ownerID: player.id,
+        currentPlayerID: player.id,
+      },
+      include: {
+        owner: true,
+        currentPlayer: true,
+        players: true,
+        winner: true,
+      },
+    });
+    return res.status(200).send(game);
+  } catch (e) {
+    res.status(500).send(`Unable to create new game: ${e}`);
+  }
 }
 
 async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -51,24 +54,28 @@ async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(200).send(game);
     }
   } catch (e) {
-    return res.send(null);
+    return res.status(404).send(`Game not found: ${e}`);
   }
 }
 
 async function PutHandler(req: NextApiRequest, res: NextApiResponse) {
   const { player, gameId } = req.body as { player: Player; gameId: string };
 
-  const game = await prisma.game.findFirst({
-    where: { id: gameId },
-  });
-
-  if (game) {
-    const updatedGame = await prisma.game.update({
+  try {
+    const game = await prisma.game.findFirst({
       where: { id: gameId },
-      data: {
-        playerIDs: [...game.playerIDs, player.id],
-      },
     });
-    return res.status(200).send(updatedGame);
+
+    if (game) {
+      const updatedGame = await prisma.game.update({
+        where: { id: gameId },
+        data: {
+          playerIDs: [...game.playerIDs, player.id],
+        },
+      });
+      return res.status(200).send(updatedGame);
+    }
+  } catch (e) {
+    return res.status(500).send(`Unable to update game: ${e}`);
   }
 }

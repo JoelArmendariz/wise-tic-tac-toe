@@ -25,22 +25,19 @@ export default function Button({
   return (
     <button
       className={twMerge(
-        'px-4 py-2 rounded-xl shadow transition-all',
+        'relative px-4 py-2 rounded-xl shadow transition-all',
         VARIANT_CLASSES[variant],
+        isLoading ? 'text-transparent' : '',
         className
       )}
       {...props}
     >
+      {children}
       {isLoading ? (
-        <div className="flex flex-row">
-          {children}
-          <div className="ml-2">
-            <LoadingSpinner size="sm" />
-          </div>
+        <div className="absolute left-1/2 bottom-1/2 translate-y-1/2 -translate-x-1/2">
+          <LoadingSpinner size="sm" />
         </div>
-      ) : (
-        children
-      )}
+      ) : null}
     </button>
   );
 }

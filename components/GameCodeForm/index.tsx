@@ -15,8 +15,8 @@ export default function GameCodeForm() {
     const player = await getOrCreatePlayerByName(playerName);
     localStorage.setItem('playerId', player.id);
     const game = await createGameByPlayer(player);
-    setIsCreatingGame(false);
     router.push(`/${game.id}`);
+    setIsCreatingGame(false);
   };
 
   const handleJoinGame = async (gameCode: string, playerName: string) => {
@@ -24,8 +24,8 @@ export default function GameCodeForm() {
     const player = await getOrCreatePlayerByName(playerName);
     localStorage.setItem('playerId', player.id);
     await addPlayerToGame(gameCode, player);
-    setIsJoiningGame(false);
     router.push(`/${gameCode}`);
+    setIsJoiningGame(false);
   };
 
   return (
@@ -34,7 +34,11 @@ export default function GameCodeForm() {
       <div className="flex justify-center items-center rounded-full border border-secondary w-8 h-8 p-5">
         or
       </div>
-      <JoinGameForm isJoiningGame={isJoiningGame} onJoinGame={handleJoinGame} />
+      <JoinGameForm
+        setIsJoiningGame={setIsJoiningGame}
+        isJoiningGame={isJoiningGame}
+        onJoinGame={handleJoinGame}
+      />
     </div>
   );
 }

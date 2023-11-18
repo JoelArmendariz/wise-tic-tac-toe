@@ -11,21 +11,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 async function PostHandler(req: NextApiRequest, res: NextApiResponse) {
   const player: Player = req.body;
 
-  const existingPlayer = await prisma.player.findFirst({
-    where: {
-      name: player.name,
-    },
-  });
+  try {
+    const existingPlayer = await prisma.player.findFirst({
+      where: {
+        name: player.name,
+      },
+    });
 
-  if (existingPlayer) {
-    return res.json(existingPlayer);
+    if (existingPlayer) {
+      return res.json(existingPlayer);
+    }
+
+    const newPlayer = await prisma.player.create({
+      data: player,
+    });
+
+    return res.status(200).json(newPlayer);
+  } catch (e) {
+    return res.status(500).send(`Could not create player: ${e}`);
   }
-
-  const newPlayer = await prisma.player.create({
-    data: player,
-  });
-
-  return res.status(200).json(newPlayer);
 }
 
 async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
@@ -44,6 +48,6 @@ async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
       return res.status(200).json(allPlayers);
     }
   } catch (e) {
-    return res.send(null);
+    return res.status(404).send(`Could not find player: ${e}`);
   }
 }

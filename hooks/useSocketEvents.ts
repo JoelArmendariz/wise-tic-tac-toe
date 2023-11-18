@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import useSocket from './useSocket';
 
-type SocketEvents = Record<string, (...args: any[]) => void>;
+type SocketEvents = Record<string, (...args: unknown[]) => void>;
 
 export default function useSocketEvents(events?: SocketEvents) {
   const socket = useSocket();

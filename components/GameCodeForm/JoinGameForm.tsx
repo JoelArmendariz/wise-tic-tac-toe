@@ -6,9 +6,14 @@ import { ChangeEvent, useState } from 'react';
 interface JoinGameFormProps {
   onJoinGame: (gameCode: string, playerName: string) => void;
   isJoiningGame?: boolean;
+  setIsJoiningGame: (joining: boolean) => void;
 }
 
-export default function JoinGameForm({ onJoinGame, isJoiningGame }: JoinGameFormProps) {
+export default function JoinGameForm({
+  onJoinGame,
+  isJoiningGame,
+  setIsJoiningGame,
+}: JoinGameFormProps) {
   const [formValues, setFormValues] = useState({
     gameCode: '',
     playerName: '',
@@ -53,6 +58,7 @@ export default function JoinGameForm({ onJoinGame, isJoiningGame }: JoinGameForm
   };
 
   const handleJoinGame = async () => {
+    setIsJoiningGame(true);
     const validated = await validate();
     if (validated) {
       const { gameCode, playerName } = formValues;

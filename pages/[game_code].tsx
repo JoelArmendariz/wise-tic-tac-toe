@@ -1,5 +1,4 @@
-import GameBoard from '@/components/Game/GameBoard';
-import Button from '@/components/common/Button';
+import Game from '@/components/Game';
 import Header from '@/components/common/Header';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
 import { Modals } from '@/constants/modals';
@@ -8,19 +7,18 @@ import useGame from '@/hooks/useGame';
 import useSocketEvents from '@/hooks/useSocketEvents';
 import { createGameByPlayer, setGameOver, updateGameBoard } from '@/services/game';
 import { getWinningOrTieRows } from '@/utils/gameUtils';
-import { ClipboardIcon } from '@heroicons/react/24/outline';
 import { GameStatus, Player } from '@prisma/client';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { twMerge } from 'tailwind-merge';
 
 export default function GameSession() {
   const router = useRouter();
   const { game_code: gameId } = router.query as { game_code: string };
   const { showModal } = useModalContext();
   const [codeCopied, setCodeCopied] = useState(false);
-  const [isCurrentPlayer, setIsCurrentPlayer] = useState<boolean>();
-  const [isOwner, setIsOwner] = useState<boolean>();
+  const [isCurrentPlayer, setIsCurrentPlayer] = useState<boolean>(false);
+  const [isCreatingNewGame, setIsCreatingNewGame] = useState<boolean>(false);
+  const [isOwner, setIsOwner] = useState<boolean>(false);
   const [winner, setWinner] = useState('');
   const [isTie, setIsTie] = useState(false);
 
@@ -137,20 +135,12 @@ export default function GameSession() {
     updateGameBoard(gameId, updatedBoardString);
   };
 
-  const handleLeaveGame = () => {
-    router.push('/');
-  };
-
-  const handleCopyGameCode = () => {
-    navigator.clipboard.writeText(gameId);
-    setCodeCopied(true);
-  };
-
   const handlePlayAgain = async () => {
     // Create new game and route to it
     const playerId = localStorage.getItem('playerId');
     const player = game?.players.find(player => player.id === playerId);
     if (player) {
+      setIsCreatingNewGame(true);
       const newGame = await createGameByPlayer(player);
       setWinner('');
       setIsTie(false);
@@ -163,64 +153,25 @@ export default function GameSession() {
         newGameId: newGame.id,
       });
       router.push(`/${newGame.id}`);
+      setIsCreatingNewGame(false);
     }
   };
-
-  const getGameStatus = () => {
-    if (winner) {
-      return `Game over - ${winner} wins!!`;
-    }
-    if (isTie) {
-      return "Game over - It's a tie!";
-    }
-    if (isCurrentPlayer && game?.playerIDs.length && game?.playerIDs.length > 1) {
-      return "It's your turn";
-    }
-    // isCurrentPlayer is possibly undefined, so we should be explicit here
-    if (isCurrentPlayer === false || game?.playerIDs?.length === 1) {
-      return `Waiting for opponent${
-        game?.playerIDs?.length === 1 ? ' - share the game code!' : ''
-      }`;
-    }
-    return '';
-  };
-
-  const gameDisabled =
-    !isCurrentPlayer || (game?.playerIDs && game?.playerIDs.length === 1) || !!winner;
 
   return !isGameLoading ? (
     <>
       <Header />
-      <div className="flex justify-center mt-48 w-full h-full">
-        <div className="flex flex-col">
-          <span>{getGameStatus()}</span>
-          <GameBoard
-            board={game ? JSON.parse(game.board) : []}
-            onMove={handleMove}
-            disabled={gameDisabled}
-          />
-          <div className="flex flex-row space-x-2 w-full">
-            <Button className="mt-2 w-full" variant="secondary" onClick={handleLeaveGame}>
-              Exit game
-            </Button>
-            {(!!winner && isOwner) || (isTie && isOwner) ? (
-              <Button className="mt-2 w-full" onClick={handlePlayAgain}>
-                Create another game
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      </div>
-      <Button
-        onClick={handleCopyGameCode}
-        className={twMerge(
-          'fixed right-6 bottom-6 flex flex-row items-center',
-          !codeCopied && isOwner && 'animate-bounce'
-        )}
-      >
-        Copy game code
-        <ClipboardIcon className="h-4 w-4 ml-2" />
-      </Button>
+      <Game
+        winner={winner}
+        isTie={isTie}
+        isCurrentPlayer={isCurrentPlayer}
+        game={game}
+        isOwner={isOwner}
+        handlePlayAgain={handlePlayAgain}
+        handleMove={handleMove}
+        codeCopied={codeCopied}
+        setCodeCopied={setCodeCopied}
+        isCreatingNewGame={isCreatingNewGame}
+      />
     </>
   ) : (
     <div className="flex justify-center mt-48 w-full h-full">
