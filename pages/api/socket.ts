@@ -37,6 +37,9 @@ export default function SocketHandler(_: NextApiRequest, res: NextApiResponseWit
       socket.on('tie-game', () => {
         socket.broadcast.emit('update-tie');
       });
+      socket.on('restart-game', ({ playerId, playerName, gameId, newGameId }) => {
+        socket.broadcast.emit('prompt-restart', { playerId, playerName, gameId, newGameId });
+      });
     });
   }
   res.end();

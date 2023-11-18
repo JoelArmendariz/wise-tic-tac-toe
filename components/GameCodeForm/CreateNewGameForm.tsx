@@ -4,9 +4,13 @@ import Button from '@/components/common/Button';
 
 interface CreateNewGameFormProps {
   onCreateNewGame: (playerName: string) => void;
+  isCreatingGame?: boolean;
 }
 
-export default function CreateNewGameForm({ onCreateNewGame }: CreateNewGameFormProps) {
+export default function CreateNewGameForm({
+  onCreateNewGame,
+  isCreatingGame,
+}: CreateNewGameFormProps) {
   const [inputValue, setInputValue] = useState('');
   const [inputError, setInputError] = useState('');
 
@@ -32,7 +36,7 @@ export default function CreateNewGameForm({ onCreateNewGame }: CreateNewGameForm
           placeholder="Enter your player name"
           errorText={inputError}
         />
-        <Button className="h-10" onClick={handleCreateNewGame}>
+        <Button className="h-10" isLoading={isCreatingGame} onClick={handleCreateNewGame}>
           New Game
         </Button>
       </div>

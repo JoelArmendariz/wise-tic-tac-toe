@@ -1,35 +1,46 @@
-import { ButtonHTMLAttributes } from "react";
-import { twMerge } from "tailwind-merge";
+import { ButtonHTMLAttributes } from 'react';
+import { twMerge } from 'tailwind-merge';
+import LoadingSpinner from '../LoadingSpinner';
 
-export type Variant = "primary" | "secondary";
+export type Variant = 'primary' | 'secondary';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
+  isLoading?: boolean;
 }
 
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary:
-    "bg-primary hover:scale-[103%] hover:bg-primary-hover active:bg-primary-active",
+  primary: 'bg-primary hover:scale-[103%] hover:bg-primary-hover active:bg-primary-active',
   secondary:
-    "bg-secondary text-black hover:scale-[103%] hover:bg-secondary-hover active:bg-secondary-active",
+    'bg-secondary text-black hover:scale-[103%] hover:bg-secondary-hover active:bg-secondary-active',
 };
 
 export default function Button({
-  variant = "primary",
+  variant = 'primary',
   children,
   className,
+  isLoading,
   ...props
 }: ButtonProps) {
   return (
     <button
       className={twMerge(
-        "px-4 py-2 rounded-xl shadow transition-all",
+        'px-4 py-2 rounded-xl shadow transition-all',
         VARIANT_CLASSES[variant],
         className
       )}
       {...props}
     >
-      {children}
+      {isLoading ? (
+        <div className="flex flex-row">
+          {children}
+          <div className="ml-2">
+            <LoadingSpinner size="sm" />
+          </div>
+        </div>
+      ) : (
+        children
+      )}
     </button>
   );
 }

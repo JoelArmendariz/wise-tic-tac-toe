@@ -2,6 +2,8 @@ import GameBoard from '@/components/Game/GameBoard';
 import Button from '@/components/common/Button';
 import Header from '@/components/common/Header';
 import LoadingSpinner from '@/components/common/LoadingSpinner';
+import { Modals } from '@/constants/modals';
+import { useModalContext } from '@/context/Modal/ModalProvider';
 import useGame from '@/hooks/useGame';
 import useSocketEvents from '@/hooks/useSocketEvents';
 import { createGameByPlayer, setGameOver, updateGameBoard } from '@/services/game';
@@ -15,6 +17,7 @@ import { twMerge } from 'tailwind-merge';
 export default function GameSession() {
   const router = useRouter();
   const { game_code: gameId } = router.query as { game_code: string };
+  const { showModal } = useModalContext();
   const [codeCopied, setCodeCopied] = useState(false);
   const [isCurrentPlayer, setIsCurrentPlayer] = useState<boolean>();
   const [isOwner, setIsOwner] = useState<boolean>();
@@ -47,6 +50,25 @@ export default function GameSession() {
         },
         { revalidate: false }
       );
+    },
+    'prompt-restart': ({
+      playerId: fromPlayerId,
+      playerName: fromPlayerName,
+      gameId: fromGameId,
+      newGameId,
+    }) => {
+      const currentPlayerId = localStorage.getItem('playerId');
+      if (fromPlayerId !== currentPlayerId && fromGameId === gameId) {
+        showModal(Modals.RESTART_GAME_MODAL, {
+          newGameId,
+          fromPlayerName,
+          onPlayAgain: () => {
+            setWinner('');
+            setIsTie(false);
+            setCodeCopied(false);
+          },
+        });
+      }
     },
   });
 
@@ -134,6 +156,12 @@ export default function GameSession() {
       setIsTie(false);
       setCodeCopied(false);
       mutate(newGame);
+      socket?.emit('restart-game', {
+        playerId,
+        playerName: player.name,
+        gameId,
+        newGameId: newGame.id,
+      });
       router.push(`/${newGame.id}`);
     }
   };

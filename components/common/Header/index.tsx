@@ -10,7 +10,7 @@ export default function Header({ showLeaderboard }: HeaderProps) {
   const { showModal } = useModalContext();
 
   const handleOpenLeaderboard = () => {
-    showModal(Modals.LEADERBOARD);
+    showModal(Modals.LEADERBOARD_MODAL);
   };
 
   return (

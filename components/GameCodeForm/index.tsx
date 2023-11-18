@@ -3,32 +3,38 @@ import CreateNewGameForm from '@/components/GameCodeForm/CreateNewGameForm';
 import JoinGameForm from '@/components/GameCodeForm/JoinGameForm';
 import { getOrCreatePlayerByName } from '@/services/player';
 import { addPlayerToGame, createGameByPlayer } from '@/services/game';
+import { useState } from 'react';
 
 export default function GameCodeForm() {
   const router = useRouter();
+  const [isCreatingGame, setIsCreatingGame] = useState(false);
+  const [isJoiningGame, setIsJoiningGame] = useState(false);
 
   const handleCreateNewGame = async (playerName: string) => {
+    setIsCreatingGame(true);
     const player = await getOrCreatePlayerByName(playerName);
     localStorage.setItem('playerId', player.id);
     const game = await createGameByPlayer(player);
+    setIsCreatingGame(false);
     router.push(`/${game.id}`);
   };
 
   const handleJoinGame = async (gameCode: string, playerName: string) => {
+    setIsJoiningGame(true);
     const player = await getOrCreatePlayerByName(playerName);
     localStorage.setItem('playerId', player.id);
     await addPlayerToGame(gameCode, player);
-
+    setIsJoiningGame(false);
     router.push(`/${gameCode}`);
   };
 
   return (
     <div className="mt-72 px-4">
-      <CreateNewGameForm onCreateNewGame={handleCreateNewGame} />
+      <CreateNewGameForm isCreatingGame={isCreatingGame} onCreateNewGame={handleCreateNewGame} />
       <div className="flex justify-center items-center rounded-full border border-secondary w-8 h-8 p-5">
         or
       </div>
-      <JoinGameForm onJoinGame={handleJoinGame} />
+      <JoinGameForm isJoiningGame={isJoiningGame} onJoinGame={handleJoinGame} />
     </div>
   );
 }

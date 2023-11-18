@@ -1,9 +1,18 @@
-export default function LoadingSpinner() {
+import { twMerge } from 'tailwind-merge';
+
+interface LoadingSpinnerProps {
+  size?: 'sm' | 'md';
+}
+
+export default function LoadingSpinner({ size = 'md' }: LoadingSpinnerProps) {
   return (
     <div role="status">
       <svg
         aria-hidden="true"
-        className="w-8 h-8 text-secondary animate-spin fill-primary"
+        className={twMerge(
+          'text-secondary animate-spin fill-primary',
+          size === 'md' ? 'h-8 w-8' : 'h-6 w-6'
+        )}
         viewBox="0 0 100 101"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"

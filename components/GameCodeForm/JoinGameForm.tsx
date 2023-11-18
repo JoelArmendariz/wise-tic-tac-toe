@@ -5,9 +5,10 @@ import { ChangeEvent, useState } from 'react';
 
 interface JoinGameFormProps {
   onJoinGame: (gameCode: string, playerName: string) => void;
+  isJoiningGame?: boolean;
 }
 
-export default function JoinGameForm({ onJoinGame }: JoinGameFormProps) {
+export default function JoinGameForm({ onJoinGame, isJoiningGame }: JoinGameFormProps) {
   const [formValues, setFormValues] = useState({
     gameCode: '',
     playerName: '',
@@ -85,7 +86,7 @@ export default function JoinGameForm({ onJoinGame }: JoinGameFormProps) {
               placeholder="Enter your player name"
               errorText={errors.playerName}
             />
-            <Button className="h-10" onClick={handleJoinGame}>
+            <Button className="h-10" isLoading={isJoiningGame} onClick={handleJoinGame}>
               Join Game
             </Button>
           </div>
