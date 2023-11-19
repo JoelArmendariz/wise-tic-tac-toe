@@ -39,7 +39,6 @@ async function PostHandler(req: NextApiRequest, res: NextApiResponse) {
 
 async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query as { id: string };
-
   try {
     const game = await prisma.game.findFirst({
       where: { id },
@@ -49,12 +48,11 @@ async function GetHandler(req: NextApiRequest, res: NextApiResponse) {
         players: true,
       },
     });
-
     if (game) {
       return res.status(200).send(game);
     }
   } catch (e) {
-    return res.status(404).send(`Game not found: ${e}`);
+    return res.send(null);
   }
 }
 

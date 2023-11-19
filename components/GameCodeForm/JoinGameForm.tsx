@@ -63,6 +63,8 @@ export default function JoinGameForm({
     if (validated) {
       const { gameCode, playerName } = formValues;
       onJoinGame(gameCode, playerName);
+    } else {
+      setIsJoiningGame(false);
     }
   };
 

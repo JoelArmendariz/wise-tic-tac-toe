@@ -37,7 +37,7 @@ export default function RestartGamePromptModal({
   return (
     <div className="relative text-black h-72 w-[22rem] rounded-lg border-0 bg-white p-4 shadow-lg">
       <XMarkIcon className="absolute top-4 right-4 w-6 h-6 cursor-pointer" onClick={handleClose} />
-      <div className="flex flex-col items-center justify-center w-full">
+      <div className="flex flex-col items-center justify-center h-[calc(100%_-_3rem)] w-full">
         <h2 className="text-2xl">{fromPlayerName || 'Your opponent'} wants to play again!</h2>
       </div>
       <div className="w-full p-4 absolute bottom-0 left-0 flex justify-between">
