@@ -7,7 +7,7 @@ import useGame from '@/hooks/useGame';
 import useSocketEvents from '@/hooks/useSocketEvents';
 import { createGameByPlayer, setGameOver, updateGameBoard } from '@/services/game';
 import { getWinningOrTieRows } from '@/utils/gameUtils';
-import { GameStatus, Player } from '@prisma/client';
+import { GameStatus } from '@prisma/client';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
@@ -32,18 +32,23 @@ export default function GameSession() {
         playerIDs: [...game.playerIDs, playerId],
       });
     },
-    'update-winner': (winner: Player) => {
+    'update-winner': ({ player: winner, gameId: eventGameId }) => {
+      if (!game || eventGameId !== gameId) return;
       setWinner(winner.name);
     },
-    'update-tie': () => {
+    'update-tie': (eventGameId: string) => {
+      if (!game || eventGameId !== gameId) return;
       setIsTie(true);
     },
-    'update-board': (updatedBoardString: string) => {
-      if (!updatedBoardString || !game) return;
+    'update-board': ({ boardString: updatedBoardString, gameId: eventGameId }) => {
+      console.log('eventGameId: ', eventGameId);
+      if (!updatedBoardString || !game || gameId !== eventGameId) return;
+      const playerId = localStorage.getItem('playerId') || '';
       setIsCurrentPlayer(true);
       mutate(
         {
           ...game,
+          currentPlayerID: playerId,
           board: updatedBoardString,
         },
         { revalidate: false }
@@ -55,6 +60,7 @@ export default function GameSession() {
       gameId: fromGameId,
       newGameId,
     }) => {
+      if (!game || fromGameId !== gameId) return;
       const currentPlayerId = localStorage.getItem('playerId');
       if (fromPlayerId !== currentPlayerId && fromGameId === gameId) {
         showModal(Modals.RESTART_GAME_MODAL, {
@@ -98,14 +104,14 @@ export default function GameSession() {
       const playerId = localStorage.getItem('playerId');
       const newWinner = game?.players.find(({ id }) => id === playerId);
       if (newWinner) {
-        socket?.emit('player-wins', newWinner);
+        socket?.emit('player-wins', { player: newWinner, gameId });
         setWinner(newWinner.name);
         setGameOver(gameId, newWinner.id);
       }
     }
     // There is a tie
     if (resultRows.length > 3) {
-      socket?.emit('tie-game');
+      socket?.emit('tie-game', gameId);
       setIsTie(true);
       setGameOver(gameId);
     }
@@ -120,7 +126,7 @@ export default function GameSession() {
     board[x][y] = playerPiece;
     const updatedBoardString = JSON.stringify(board);
     // Update our opponent with the new board
-    socket?.emit('player-move', updatedBoardString);
+    socket?.emit('player-move', { boardString: updatedBoardString, gameId });
     // Update our own UI with the new board
     mutate(
       {

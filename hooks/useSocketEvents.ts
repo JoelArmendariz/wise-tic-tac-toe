@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import useSocket from './useSocket';
 
-type SocketEvents = Record<string, (...args: unknown[]) => void>;
+// These args can really be anything given back from the socket event
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type SocketEvents = Record<string, (...args: any[]) => void>;
 
 export default function useSocketEvents(events?: SocketEvents) {
   const socket = useSocket();
