@@ -1,40 +1,31 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
-
 ## Getting Started
 
-First, run the development server:
+First, install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+yarn install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then you'll need to point the app to a mongo database. The app was developed using Mongo Atlas, you can register for a free account [here](https://www.mongodb.com/cloud/atlas/register).
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+- Once you sign up for an account, click "Build a database".
+- Select M0 for a free tier of storage. This will suffice for our game! Click create.
+- On the Security Quickstart landing page, you'll need to create a user. Note down (or change) the password. You'll need it later. Click "Create User".
+- The "Where would you like to connect from?" section should default to your local IP. To accept this click "Finish and close".
+- You should then be able to see your database cluster by clicking "Database" in the left-hand nav menu. From the Database view, click "Connect".
+- Select the first option "Drivers", and you should see a connection URL in step 3 of the following screen. Copy that and replace <password> with your User password. (Note: you should get rid of the query params so that your URL structure is as follows: `mongodb+srv://<USERNAME>:<PASSWORD>@cluster0.<CLUSTER-HASH>.mongodb.net/tic-tac-toe`)
+- Create a file at the root of the project called `.env` and paste the updated URL:
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```
+DATABASE_URL="<MONGO-URL>"
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+- Go back to the mongo dashboard and close the "Connect" modal, then click "Browse Collections".
+- From here, select "Add My Own Data" and give your database and collection the name "tic-tac-toe".
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+Now you should be able to run `npx prisma generate` at the root of the project, and run it with `yarn dev`
 
-## Learn More
+## Testing the game
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+This game uses socket.io to send players' moves/actions to other players. To test this game, you should open two browsers (at least one as incognito).
+One browser can create a game and copy the game code, and the other can paste the game code and join the game. Have fun playing the game! Remember to view the leaderboards by clicking the icon in the header!
